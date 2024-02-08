@@ -1,7 +1,6 @@
 import bpy
 import numpy as np
 
-
 start = bpy.data.objects["start"].location
 end = bpy.data.objects["end"].location
 dist = np.linalg.norm(end - start)
