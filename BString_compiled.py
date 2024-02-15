@@ -1,9 +1,12 @@
 import bpy
 import numpy as np
+import bmusic
 
 """
 BPath: NURBS path on the world plane
 """
+
+
 class BPath:
     def __init__(self, collection, name, dist, ct_point):
         self.dist = dist
@@ -25,7 +28,7 @@ class BPath:
         self.nurbs.points.add(self.ct_point - 1)
         self.nurbs.use_endpoint_u = True
         self.nurbs.order_u = self.ct_point
-    
+
     def create_obj(self):
         self.obj = bpy.data.objects.new(self.name, self.curve)
         self.collection.objects.link(self.obj)
@@ -45,11 +48,23 @@ class BPath:
         self.set_nurbs_points(points)
         self.create_obj()
 
+
 """
 BEmpty: Empty object with specific properties
 """
+
+
 class BEmpty:
-    def __init__(self, collection, name, location, rot_euler = [0,0,0], display_type="SPHERE", display_size=1, hidden=False):
+    def __init__(
+        self,
+        collection,
+        name,
+        location,
+        rot_euler=[0, 0, 0],
+        display_type="SPHERE",
+        display_size=1,
+        hidden=False,
+    ):
         self.name = name
         self.location = location
         self.rot_euler = rot_euler
@@ -69,9 +84,12 @@ class BEmpty:
         if self.hidden:
             self.obj.hide_viewport = True
 
+
 """
 BString: Mechanism of two BPath objects to create a musical string
 """
+
+
 class BString:
     def __init__(self, collection, name, start, end):
         self.start = start
@@ -92,7 +110,9 @@ class BString:
         self.anim_empty = BEmpty(self.collection, "anim_empty", [0, 0, 0])
         self.anim_empty.create()
         # temporary empty to set constraints
-        self.end_empty = BEmpty(self.collection, "end_constraint", [self.dist / 2, 0, 0], hidden=True)
+        self.end_empty = BEmpty(
+            self.collection, "end_constraint", [self.dist / 2, 0, 0], hidden=True
+        )
         self.end_empty.create()
 
         # set constraints for anim_empty to be in the middle
@@ -107,6 +127,14 @@ class BString:
         loc_constraint_end.target_space = "LOCAL"
         loc_constraint_mid.target_space = "LOCAL"
         loc_constraint_end.influence = 0.5
+
+        # set limits for center empty
+        lim_const_cent = self.center_empty.obj.constraints.new("LIMIT_LOCATION")
+        lim_const_cent.owner_space = "LOCAL"
+        lim_const_cent.use_min_y = True
+        lim_const_cent.use_max_y = True
+        lim_const_cent.min_y = 0
+        lim_const_cent.max_y = 0
 
     def create_paths(self):
         self.anim_path = BPath(self.collection, self.name, self.dist, 3)
@@ -125,7 +153,14 @@ class BString:
         rot_euler = dir.to_track_quat("X", "Z").to_euler()
 
         # transform parent
-        self.parent = BEmpty(self.collection, "BString." + self.name, loc, rot_euler, display_type="CUBE", display_size=self.dist/10)
+        self.parent = BEmpty(
+            self.collection,
+            "BString." + self.name,
+            loc,
+            rot_euler,
+            display_type="CUBE",
+            display_size=self.dist / 10,
+        )
         self.parent.create()
 
         # parent objects
@@ -139,18 +174,50 @@ class BString:
     def create(self):
         self.create_empties()
         self.create_paths()
-        self.create_hooks() 
+        self.create_hooks()
         self.create_parent()
+
 
 ## Collection
 collection = bpy.data.collections.new("BString.01")
 bpy.context.scene.collection.children.link(collection)
-collection.color_tag = 'COLOR_06'
+collection.color_tag = "COLOR_06"
 
-## Usage   
+## Usage
 start = bpy.data.objects["start"].location
 end = bpy.data.objects["end"].location
 
 ## BString
 bstring = BString(collection, "01", start, end)
 bstring.create()
+
+## bmusic animation
+DAMPENING = 10
+obj = bpy.data.objects["anim_empty"]
+midi = bmusic.parse_midi("assets/OneNote.mid")
+
+anim = bmusic.Animator(obj, "pass_index")
+
+animkey = bmusic.AnimKey([anim], [0])
+animkey["on"] = [100]
+
+fade_func = lambda x: bmusic.utils.EXPONENTIAL(DAMPENING, x)
+
+proc = bmusic.proc.IntensityFade(
+    midi=midi, animkey=animkey, duration=0.2, fade_func=fade_func
+)
+proc.animate()
+
+### driver
+s_driver = obj.driver_add("location", 1)
+
+s_driver.driver.type = "SCRIPTED"
+
+pass_ind = s_driver.driver.variables.new()
+
+pass_ind.name = "pass_ind"
+pass_ind.type = "SINGLE_PROP"
+pass_ind.targets[0].id = obj
+pass_ind.targets[0].data_path = "pass_index"
+
+s_driver.driver.expression = "5*sin(frame*11)*pass_ind/100"
