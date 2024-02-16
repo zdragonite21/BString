@@ -88,8 +88,6 @@ class BEmpty:
 """
 BString: Mechanism of two BPath objects to create a musical string
 """
-
-
 class BString:
     def __init__(self, collection, name, start, end):
         self.start = start
