@@ -4,12 +4,12 @@ import bmusic
 # ============================================================================ #
 #                                     SETUP                                    #
 # ============================================================================ #
-pluck = bpy.data.objects["anim_empty"]
-center = bpy.data.objects["center_empty"]
+pluck = bpy.data.objects["pluck_ct"]
+fret = bpy.data.objects["fret_ct"]
 
 # clear animation data
 pluck.animation_data_clear()
-center.animation_data_clear()
+fret.animation_data_clear()
 
 # ============================================================================ #
 #                                   ANIMATION                                  #
