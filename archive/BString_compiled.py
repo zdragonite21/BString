@@ -5,8 +5,6 @@ import bmusic
 """
 BPath: NURBS path on the world plane
 """
-
-
 class BPath:
     def __init__(self, collection, name, dist, ct_point):
         self.dist = dist
