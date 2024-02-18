@@ -102,6 +102,7 @@ class BEmpty:
         rot_euler=[0, 0, 0],
         display_type="SPHERE",
         display_size=1,
+        show_name=False,
         hidden=False,
     ):
         self.name = name
@@ -113,7 +114,8 @@ class BEmpty:
             "rotation_euler" : rot_euler,
             "empty_display_type" : display_type,
             "empty_display_size" : display_size,
-            "hide_viewport" : hidden
+            "hide_viewport" : hidden,
+            "show_name" : show_name,
         }
 
     def create(self):
@@ -134,19 +136,19 @@ class BString:
         self.collection = collection
 
         self.parent = None
-        self.anim_path = None
-        self.still_path = None
+        self.pluck_path = None
+        self.fret_path = None
         self.empties = {}
 
     def create_empties(self):
-        # animation empty for plucking motion
-        center = BEmpty(self.collection, "center_empty", [0, 0, 0])
-        center.create()
-        self.empties["center"] = center
-        # center empty for "pressing down" motion
-        anim = BEmpty(self.collection, "anim_empty", [0, 0, 0])
-        anim.create()
-        self.empties["anim"] = anim
+        # pluck empty for plucking motion
+        fret = BEmpty(self.collection, "fret_ct", [0, 0, 0], show_name=True)
+        fret.create()
+        self.empties["fret"] = fret
+        # fret empty for "pressing down" motion
+        pluck = BEmpty(self.collection, "pluck_ct", [0, 0, 0], show_name=True)
+        pluck.create()
+        self.empties["pluck"] = pluck
         # start and end empties for constraints
         start = BEmpty(
             self.collection, "start_constraint", [-self.dist / 2, 0, 0], hidden=True
@@ -161,27 +163,27 @@ class BString:
 
         # -------------------------------- Constraints ------------------------------- #
 
-        # set constraints for anim_empty to be in the middle
-        anim_constraint = BConstraint(self.empties["anim"].obj)
-        anim_constraint.create_copy_loc(self.empties["center"].obj, [0, 2], 1)
-        anim_constraint.create_copy_loc(self.empties["end"].obj, [0, 2], 0.5)
+        # set constraints for pluck_empty to be in the middle
+        pluck_constraint = BConstraint(self.empties["pluck"].obj)
+        pluck_constraint.create_copy_loc(self.empties["fret"].obj, [0, 2], 1)
+        pluck_constraint.create_copy_loc(self.empties["end"].obj, [0, 2], 0.5)
 
-        # set constraints for center empty
-        center_constraint = BConstraint(self.empties["center"].obj)
-        center_constraint.create_limit_loc([1], [0, 0, 0], [0, 0, 0])
-        center_constraint.create_copy_loc(self.empties["start"].obj, [0], 1)
-        center_constraint.create_copy_loc(self.empties["end"].obj, [0], 0.5)
+        # set constraints for fret empty
+        fret_constraint = BConstraint(self.empties["fret"].obj)
+        fret_constraint.create_limit_loc([1], [0, 0, 0], [0, 0, 0])
+        fret_constraint.create_copy_loc(self.empties["start"].obj, [0], 1)
+        fret_constraint.create_copy_loc(self.empties["end"].obj, [0], 0.5)
 
     def create_paths(self):
-        self.anim_path = BPath(self.collection, self.name, self.dist, 3)
-        self.anim_path.create([[0, 0, 0, 1], [0, 0, 0, 1], [self.dist / 2, 0, 0, 1]])
-        self.still_path = BPath(self.collection, self.name, self.dist, 2)
-        self.still_path.create([[0, 0, 0, 1], [-self.dist / 2, 0, 0, 1]])
+        self.pluck_path = BPath(self.collection, "pluck_path", self.dist, 3)
+        self.pluck_path.create([[0, 0, 0, 1], [0, 0, 0, 1], [self.dist / 2, 0, 0, 1]])
+        self.fret_path = BPath(self.collection, "fret_path", self.dist, 2)
+        self.fret_path.create([[0, 0, 0, 1], [-self.dist / 2, 0, 0, 1]])
 
     def create_hooks(self):
-        self.anim_path.set_hook(self.empties["center"], [0])
-        self.still_path.set_hook(self.empties["center"], [0])
-        self.anim_path.set_hook(self.empties["anim"], [1])
+        self.pluck_path.set_hook(self.empties["fret"], [0])
+        self.fret_path.set_hook(self.empties["fret"], [0])
+        self.pluck_path.set_hook(self.empties["pluck"], [1])
 
     def create_parent(self):
         loc = (self.start + self.end) / 2
@@ -191,7 +193,7 @@ class BString:
         # transform parent
         self.parent = BEmpty(
             self.collection,
-            "BString." + self.name,
+            self.name,
             loc,
             rot_euler,
             display_type="CUBE",
@@ -201,8 +203,8 @@ class BString:
 
         # parent paths
         parent_obj = self.parent.obj
-        self.anim_path.obj.parent = parent_obj
-        self.still_path.obj.parent = parent_obj
+        self.pluck_path.obj.parent = parent_obj
+        self.fret_path.obj.parent = parent_obj
         # parent empties
         for empty in self.empties.values():
             empty.obj.parent = parent_obj
@@ -218,7 +220,8 @@ class BString:
 # ============================================================================ #
 
 ## Collection
-collection = bpy.data.collections.new("BString.01")
+name = "BString"
+collection = bpy.data.collections.new(name)
 bpy.context.scene.collection.children.link(collection)
 collection.color_tag = "COLOR_06"
 
@@ -227,5 +230,5 @@ start = bpy.data.objects["start"].location
 end = bpy.data.objects["end"].location
 
 ## BString
-bstring = BString(collection, "01", start, end)
+bstring = BString(collection, name, start, end)
 bstring.create()
