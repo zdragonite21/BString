@@ -1,5 +1,6 @@
 import bpy
 
+
 class BPath:
     def __init__(self, collection, name, ct_point):
         self.ct_point = ct_point
@@ -38,6 +39,7 @@ class BPath:
         self.set_nurbs_points(points)
         self.create_obj()
 
+
 class BEmpty:
     def __init__(
         self,
@@ -68,14 +70,15 @@ class BEmpty:
         if self.hidden:
             self.obj.hide_viewport = True
 
-WIDTH = 1.5
-LENGTH_FAC = 20
-FRET_COUNT = 19
-BEVEL_DEPTH = .05
-FRET_RATIO = .945
 
-FRET_FUNC = lambda x: FRET_RATIO ** x
-WIDTH_FUNC = lambda x: x * .02 + WIDTH
+WIDTH = 1.21
+LENGTH_FAC = 20
+FRET_COUNT = 20
+BEVEL_DEPTH = 0.05
+FRET_RATIO = 0.945
+
+FRET_FUNC = lambda x: FRET_RATIO**x
+WIDTH_FUNC = lambda x: x * 0.02 + WIDTH
 
 fret_bpaths = []
 
@@ -86,32 +89,25 @@ collection = bpy.data.collections.new("GUITAR.01")
 bpy.context.scene.collection.children.link(collection)
 collection.color_tag = "COLOR_07"
 
-bpath = BPath(collection, "frets.001", 2)
-width = WIDTH_FUNC(19)
-bpath.create([[0, -width/2, 0, 1], [0, width/2, 0, 1]])
-fret_bpaths.append(bpath)
-bpath.obj.location.x = 0
-
-bpath = BPath(collection, "frets.001", 2)
-width = WIDTH_FUNC(-1)
-bpath.create([[0, -width/2, 0, 1], [0, width/2, 0, 1]])
-fret_bpaths.append(bpath)
-bpath.obj.location.x = LENGTH_FAC * FRET_FUNC(-1)
+# bpath = BPath(collection, "frets.001", 2)
+# width = WIDTH(19)
+# bpath.create([[0, -width / 2, 0, 1], [0, width / 2, 0, 1]])
+# fret_bpaths.append(bpath)
+# bpath.obj.location.x = 0
 
 
-for i in range(FRET_COUNT + 1):
+for i in range(1, FRET_COUNT + 1):
     bpath = BPath(collection, "frets.001", 2)
-    width = WIDTH_FUNC(i)
-    bpath.create([[0, -width/2, 0, 1], [0, width/2, 0, 1]])
+    width = WIDTH
+    bpath.create([[0, -width / 2, 0, 1], [0, width / 2, 0, 1]])
     fret_bpaths.append(bpath)
     bpath.obj.location.x = LENGTH_FAC * FRET_FUNC(i)
 
-    bempty = BEmpty(collection, "fret-markers.001", [0, 0, 0], display_size=.2)
-    bempty.create()
-    mid = (FRET_FUNC(i - 1) + FRET_FUNC(i)) / 2
-    bempty.obj.location.x = LENGTH_FAC * mid
-    empties.append(bempty)
-
+    # bempty = BEmpty(collection, "fret-markers.001", [0, 0, 0], display_size=0.2)
+    # bempty.create()
+    # mid = (FRET_FUNC(i - 1) + FRET_FUNC(i)) / 2
+    # bempty.obj.location.x = LENGTH_FAC * mid
+    # empties.append(bempty)
 
 
 for bpath in fret_bpaths:

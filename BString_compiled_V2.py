@@ -4,14 +4,17 @@ import numpy as np
 """
 BConstraint: Helper to create constraints for an object
 """
+
+
 class BConstraint:
     def __init__(self, obj):
         self.obj = obj
 
-    def create_copy_loc(self, target, axis, influence):
+    def create_copy_loc(self, target, axis, influence, name="COPY_LOCATION"):
         constraint = self.obj.constraints.new("COPY_LOCATION")
 
         props = {
+            "name": name,
             "owner_space": "LOCAL",
             "target_space": "LOCAL",
             "target": target,
@@ -24,10 +27,13 @@ class BConstraint:
         for prop, value in props.items():
             setattr(constraint, prop, value)
 
-    def create_limit_loc(self, axis, min, max):
+        return constraint
+
+    def create_limit_loc(self, axis, min, max, name="LIMIT_LOCATION"):
         constraint = self.obj.constraints.new("LIMIT_LOCATION")
 
         props = {
+            "name": name,
             "owner_space": "LOCAL",
             "use_min_x": True if 0 in axis else False,
             "use_min_y": True if 1 in axis else False,
@@ -46,13 +52,18 @@ class BConstraint:
         for prop, value in props.items():
             setattr(constraint, prop, value)
 
+        return constraint
+
+
 """
 BPath: NURBS path on the world plane
 """
+
+
 class BPath:
     def __init__(self, collection, name, dist, ct_point):
         self.dist = dist
-        self.depth = self.dist / 500
+        self.depth = self.dist / 1000
         self.ct_point = ct_point
         self.name = name
         self.curve = None
@@ -90,9 +101,12 @@ class BPath:
         self.set_nurbs_points(points)
         self.create_obj()
 
+
 """
 BEmpty: Empty object with specific props
 """
+
+
 class BEmpty:
     def __init__(
         self,
@@ -110,12 +124,12 @@ class BEmpty:
         self.collection = collection
 
         self.props = {
-            "location" : location,
-            "rotation_euler" : rot_euler,
-            "empty_display_type" : display_type,
-            "empty_display_size" : display_size,
-            "hide_viewport" : hidden,
-            "show_name" : show_name,
+            "location": location,
+            "rotation_euler": rot_euler,
+            "empty_display_type": display_type,
+            "empty_display_size": display_size,
+            "hide_viewport": hidden,
+            "show_name": show_name,
         }
 
     def create(self):
@@ -124,9 +138,13 @@ class BEmpty:
 
         for prop, value in self.props.items():
             setattr(self.obj, prop, value)
+
+
 """
 BString: Mechanism of two BPath objects to create a musical string
 """
+
+
 class BString:
     def __init__(self, collection, name, start, end):
         self.start = start
@@ -138,6 +156,7 @@ class BString:
         self.parent = None
         self.pluck_path = None
         self.fret_path = None
+        self.fret_ct = None
         self.empties = {}
 
     def create_empties(self):
@@ -172,7 +191,9 @@ class BString:
         fret_constraint = BConstraint(self.empties["fret"].obj)
         fret_constraint.create_limit_loc([1], [0, 0, 0], [0, 0, 0])
         fret_constraint.create_copy_loc(self.empties["start"].obj, [0], 1)
-        fret_constraint.create_copy_loc(self.empties["end"].obj, [0], 0.5)
+        self.fret_ct = fret_constraint.create_copy_loc(
+            self.empties["end"].obj, [0], 0.5, "fret_ct"
+        )
 
     def create_paths(self):
         self.pluck_path = BPath(self.collection, "pluck_path", self.dist, 3)
@@ -214,6 +235,7 @@ class BString:
         self.create_paths()
         self.create_hooks()
         self.create_parent()
+
 
 # ============================================================================ #
 #                                     USAGE                                    #
