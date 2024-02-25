@@ -98,7 +98,7 @@ collection.color_tag = "COLOR_07"
 
 for i in range(1, FRET_COUNT + 1):
     bpath = BPath(collection, "frets.001", 2)
-    width = WIDTH
+    width = WIDTH_FUNC(i)
     bpath.create([[0, -width / 2, 0, 1], [0, width / 2, 0, 1]])
     fret_bpaths.append(bpath)
     bpath.obj.location.x = LENGTH_FAC * FRET_FUNC(i)
