@@ -61,16 +61,15 @@ BDriver: Helper driver presets for animation
 
 
 class BDriver:
-    def __init__(self, obj, controller, prop, index):
+    def __init__(self, obj, controller, prop):
         self.obj = obj
         # objects, constraints, etc
         self.controller = controller
         self.prop = prop
 
-    def create_mirror(self, path, prop_name):
+    def create_mirror(self, prop_name, custom=False):
         props = {
             "type": "SCRIPTED",
-            "expression": path,
             "expression": prop_name,
         }
         driver = self.controller.driver_add(self.prop)
@@ -81,7 +80,7 @@ class BDriver:
         mirror.name = prop_name
         mirror.type = "SINGLE_PROP"
         mirror.targets[0].id = self.obj
-        mirror.targets[0].data_path = path
+        mirror.targets[0].data_path = prop_name if not custom else f'["{prop_name}"]'
 
 
 """
