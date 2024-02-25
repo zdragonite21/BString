@@ -75,8 +75,10 @@ proc = bmusic.proc.IntensityFade(
 proc.animate()
 
 
-# ----------------------------------- fret ----------------------------------- #
-# fret position
+# ------------------------------- fret position ------------------------------ #
+OFFSET = 60
+
+
 def calc_fret_pos(fret_num):
     FRET_RATIO = 0.945
     FRET_FUNC = lambda x: FRET_RATIO**x
@@ -84,25 +86,18 @@ def calc_fret_pos(fret_num):
 
 
 anim = bmusic.Animator(fret, '["fret_pos"]')
+animkey = bmusic.AnimKey([anim], [0])
 
-OFFSET = 60
+for i in range(20):
+    animkey[f"{i + OFFSET}"] = [calc_fret_pos(i)]
 
-handle = "AUTO_CLAMPED"
+proc = bmusic.proc.ToNote(animkey)
 
-for msg in midi:
-    fret_num = msg.note - OFFSET
-    pos = calc_fret_pos(fret_num)
-    anim.animate(msg.start, pos, handle=handle)
-    if msg.next() is not None:
-        anim.animate(msg.next().start - 1, pos, handle=handle)
-    # if msg.next() is not None:
-    #     anim.animate(msg.end + 1, 1000, handle=handle)
-    #     anim.animate(msg.next().start - 1, 1000, handle=handle)
-
+# creating a mirror driver
 fret_driver = BDriver(fret, fret_ct, "influence")
 fret_driver.create_mirror("fret_pos", True)
 
-# fret height
+# -------------------------------- fret height ------------------------------- #
 anim = bmusic.Animator(fret, "location", 2)
 animkey = bmusic.AnimKey([anim], [0])
 animkey["on"] = [-0.1]
