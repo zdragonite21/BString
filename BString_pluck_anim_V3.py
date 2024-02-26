@@ -1,6 +1,5 @@
 import bpy
 import bmusic
-import numpy as np
 
 # ============================================================================ #
 #                                    BSTRING                                   #
@@ -33,7 +32,7 @@ class BDriver:
         mirror.targets[0].id = self.obj
         mirror.targets[0].data_path = prop_name if not custom else f'["{prop_name}"]'
 
-    def create_oscillation(self, prop_name, amp=0.5, freq=11, custom=False):
+    def create_oscillation(self, prop_name, amp=0.3, freq=11, custom=False):
         props = {
             "type": "SCRIPTED",
             "expression": f"{amp}*cos({freq}*frame)*{prop_name}",
@@ -69,7 +68,7 @@ fret["fret_pos"] = 0.0
 # ============================================================================ #
 
 # ---------------------------------- bmusic ---------------------------------- #
-midi = bmusic.parse_midi("assets/a-string_1.mid")
+midi = bmusic.parse_midi("assets/a-string_6.mid")
 
 # ----------------------------------- pluck ---------------------------------- #
 DAMPENING = 0.3
