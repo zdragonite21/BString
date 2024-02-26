@@ -56,34 +56,6 @@ class BConstraint:
 
 
 """
-BDriver: Helper driver presets for animation
-"""
-
-
-class BDriver:
-    def __init__(self, obj, controller, prop):
-        self.obj = obj
-        # objects, constraints, etc
-        self.controller = controller
-        self.prop = prop
-
-    def create_mirror(self, prop_name, custom=False):
-        props = {
-            "type": "SCRIPTED",
-            "expression": prop_name,
-        }
-        driver = self.controller.driver_add(self.prop)
-        for prop, value in props.items():
-            setattr(driver.driver, prop, value)
-
-        mirror = driver.driver.variables.new()
-        mirror.name = prop_name
-        mirror.type = "SINGLE_PROP"
-        mirror.targets[0].id = self.obj
-        mirror.targets[0].data_path = prop_name if not custom else f'["{prop_name}"]'
-
-
-"""
 BPath: NURBS path on the world plane
 """
 
@@ -269,16 +241,16 @@ class BString:
 #                                     USAGE                                    #
 # ============================================================================ #
 
-## Collection
+# -------------------------------- Collection -------------------------------- #
 name = "BString"
 collection = bpy.data.collections.new(name)
 bpy.context.scene.collection.children.link(collection)
 collection.color_tag = "COLOR_06"
 
-## Usage
+# ------------------------------ Initialization ------------------------------ #
 start = bpy.data.objects["start"].location
 end = bpy.data.objects["end"].location
 
-## BString
+# ---------------------------------- BString --------------------------------- #
 bstring = BString(collection, name, start, end)
 bstring.create()

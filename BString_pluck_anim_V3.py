@@ -2,7 +2,7 @@ import bpy
 import bmusic
 
 # ============================================================================ #
-#                                    BSTRING                                   #
+#                                    BDriver                                   #
 # ============================================================================ #
 """
 BDriver: Helper driver presets for animation
@@ -12,7 +12,7 @@ BDriver: Helper driver presets for animation
 class BDriver:
     def __init__(self, obj, controller, prop, index=-1):
         self.obj = obj
-        # objects, constraints, etc
+        # objects, constraints, etc (controller that has property you want to add a driver to)
         self.controller = controller
         self.prop = prop
         self.index = index
@@ -91,17 +91,13 @@ pluck_driver.create_oscillation("pluck_fade", custom=True)
 
 
 # ------------------------------- fret position ------------------------------ #
-OFFSET = 69
-
-
 def calc_fret_pos(fret_num):
     FRET_RATIO = 0.945
     FRET_FUNC = lambda x: FRET_RATIO**x
     return (FRET_FUNC(fret_num + 1) + FRET_FUNC(fret_num)) / 2
 
 
-# for msg in midi:
-#     print(msg.note)
+OFFSET = 69
 
 anim = bmusic.Animator(fret, '["fret_pos"]')
 animkey = bmusic.AnimKey([anim], [0])
